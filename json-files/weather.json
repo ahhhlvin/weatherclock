@@ -1,0 +1,41 @@
+{
+  "coord": {
+    "lon": -74.01,
+    "lat": 40.71
+  },
+  "sys": {
+    "message": 0.011,
+    "country": "United States of America",
+    "sunrise": 1428229930,
+    "sunset": 1428276303
+  },
+  "weather": [
+    {
+      "id": 800,
+      "main": "Clear",
+      "description": "Sky is Clear",
+      "icon": "01d"
+    }
+  ],
+  "base": "stations",
+  "main": {
+    "temp": 282.417,
+    "temp_min": 282.417,
+    "temp_max": 282.417,
+    "pressure": 1033.26,
+    "sea_level": 1037.02,
+    "grnd_level": 1033.26,
+    "humidity": 68
+  },
+  "wind": {
+    "speed": 3.21,
+    "deg": 237.501
+  },
+  "clouds": {
+    "all": 0
+  },
+  "dt": 1428243309,
+  "id": 5128581,
+  "name": "New York",
+  "cod": 200
+}
