@@ -3,13 +3,13 @@ package nyc.c4q.ac21.weatherclock;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.Calendar;
 
 public class Main {
@@ -20,7 +20,9 @@ public class Main {
     public static Calendar getSunset() {
 
 
-        URL url = HTTP.stringToURL("http://api.openweathermap.org/data/2.5/weather?q=New%20York,NY");
+        URL url = HTTP.stringToURL("http://api.openweathermap.org/data/2.5/weather?zip=94555,us");
+        // URL url = HTTP.stringToURL("http://api.openweathermap.org/data/2.5/weather?q=New%20York,NY");
+
         String doc = HTTP.get(url);
         JSONObject obj = (JSONObject) JSONValue.parse(doc);
 
@@ -43,7 +45,9 @@ public class Main {
     //
     public static Calendar getSunrise() {
 
-        URL url = HTTP.stringToURL("http://api.openweathermap.org/data/2.5/weather?q=New%20York,NY");
+        URL url = HTTP.stringToURL("http://api.openweathermap.org/data/2.5/weather?zip=94555,us");
+        // URL url = HTTP.stringToURL("http://api.openweathermap.org/data/2.5/weather?q=New%20York,NY");
+
         String doc = HTTP.get(url);
         JSONObject obj = (JSONObject) JSONValue.parse(doc);
 
@@ -62,20 +66,11 @@ public class Main {
     //
 
 
-
-
     /**
      * SAMPLE CODE: Displays a very primitive clock.
      */
     public static void main(String[] args) throws IOException, ParseException
     {
-
-        JSONParser parser = new JSONParser();
-        JSONObject weather_json_obj = (JSONObject)parser.parse(new FileReader("/Users/alvin2/Desktop/accesscode/weatherclock/json-files/weather.json"));
-
-        // FIXME: get way to pull API data from URL!!
-        URL webUrl = HTTP.stringToURL(
-                "http://api.openweathermap.org/data/2.5/weather?q=New%20York,NY");
 
 
         // Find out the size of the terminal currently.
@@ -88,14 +83,19 @@ public class Main {
         // When the program shuts down, reset the terminal to its original state.
         // This code makes sure the terminal is reset even if you kill your
         // program by pressing Control-C.
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
+        Runtime.getRuntime().addShutdownHook(new Thread()
+        {
+            public void run()
+            {
                 terminal.showCursor();
                 terminal.reset();
                 terminal.scroll(1);
                 terminal.moveTo(numRows, 0);
             }
         });
+
+        terminal.moveTo(1,1);
+        terminal.write("weather clock");
 
         // Clear the screen to black.
         terminal.setBackgroundColor(AnsiTerminal.Color.BLACK);
@@ -111,42 +111,76 @@ public class Main {
         Calendar sunrise = getSunrise();
 
 
-        int xPosition = 1 + numCols / 2 - 5;
+        // int xPosition = 1 + numCols / 2 - 5;
         while (true) {
             // Get the current date and time.
             Calendar cal = Calendar.getInstance();
 
             // Write the time, including seconds, in white.
+
+            terminal.setTextColor(AnsiTerminal.Color.BLUE);
+            terminal.moveTo(5, 94);
+            terminal.write("**** CURRENT TIME ****");
+
+            terminal.moveTo(9, 94);
+            terminal.write("**********************");
+
+
+
+
             String time = DateTime.formatTime(cal, true);
             if (cal.get(Calendar.HOUR_OF_DAY) >= 12)
                 time += " PM";
             else
                 time += " AM";
-            terminal.setTextColor(AnsiTerminal.Color.WHITE);
-            terminal.moveTo(3, xPosition);
+            terminal.setTextColor(AnsiTerminal.Color.RED);
+            terminal.moveTo(7, 100);
             terminal.write(time);
+
+
+
+            terminal.setTextColor(AnsiTerminal.Color.WHITE);
+            terminal.moveTo(13, 86);
+            terminal.write("Have a GRRRREEEAAAATTTTT day, C4Q-ers!!!");
+
+            terminal.setTextColor(AnsiTerminal.Color.MAGENTA);
+            terminal.moveTo(15, 100);
+            terminal.write("^_________^");
+
+
 
             // Write the date in gray.
             String date = DateTime.formatDate(cal);
+            // date = (cal.MONTH + "/" + cal.DAY_OF_MONTH + "/" + cal.YEAR);
             terminal.setTextColor(AnsiTerminal.Color.WHITE, false);
-            terminal.moveTo(5, xPosition);
+            terminal.moveTo(5, 4);
             terminal.write(date);
 
-            // Write the day of the week in green on a blue background.
+            // Write out the Holiday.
+            terminal.moveTo(7, 4);
+            terminal.write(Holidays.getHolidays(date));
+
+
+            // Write out if DST is active
+            if(DST.isDST(DateTime.parseDate(date))){
+                terminal.moveTo(14, 4);
+                terminal.write("DST is IN EFFECT");
+            }else{
+                terminal.moveTo(14, 4);
+                terminal.write("DST is NOT IN EFFECT");
+            }
+
+
+
             String dayOfWeek = DateTime.getDayOfWeekNames().get(cal.get(Calendar.DAY_OF_WEEK));
-            terminal.setTextColor(AnsiTerminal.Color.GREEN);
+            terminal.setTextColor(AnsiTerminal.Color.WHITE);
             terminal.setBackgroundColor(AnsiTerminal.Color.BLUE);
-            terminal.moveTo(7, xPosition);
+            terminal.moveTo(5, 17);
             terminal.write("  " + dayOfWeek + "  ");
 
             // Set the background color back to black.
             terminal.setBackgroundColor(AnsiTerminal.Color.BLACK);
 
-            // Write sunset time in dark yellow.
-            String sunsetTime = DateTime.formatTime(sunset, false) + " PM";
-            terminal.setTextColor(AnsiTerminal.Color.YELLOW, false);
-            terminal.moveTo(9, xPosition - 2);
-            terminal.write("Sunset Time: " + sunsetTime);
 
             //
             //
@@ -154,7 +188,7 @@ public class Main {
             // Write sunrise time in dark yellow.
             String sunriseTime = DateTime.formatTime(sunrise, false) + " AM";
             terminal.setTextColor(AnsiTerminal.Color.YELLOW, false);
-            terminal.moveTo(10, xPosition - 2);
+            terminal.moveTo(11, 4);
             terminal.write("Sunrise Time: " + sunriseTime);
             //
             //
@@ -162,15 +196,18 @@ public class Main {
             //
 
 
-            // Pause for one second, and do it again.
+            // Write sunset time in dark yellow.
+            String sunsetTime = DateTime.formatTime(sunset, false) + " PM";
+            terminal.setTextColor(AnsiTerminal.Color.YELLOW, false);
+            terminal.moveTo(9, 4);
+            terminal.write("Sunset Time: " + sunsetTime);
 
-            // FIXME: this changes the delay in displaying whatever comes after it!
-            //DateTime.pause(1.0);
 
 
-            int y = 12;
+            int y = 20;
             for (int i = 0; i < CalendarPrinter.printMonthCalendar(cal).size(); i++) {
-                terminal.moveTo(y,xPosition);
+                terminal.setTextColor(AnsiTerminal.Color.MAGENTA, false);
+                terminal.moveTo(y, 4);
                 terminal.write(CalendarPrinter.printMonthCalendar(cal).get(i));
                 y++;
             }
@@ -189,46 +226,105 @@ public class Main {
             //
             // Alvin's part! (TEMP STUFF!!)
 
+            URL url = HTTP.stringToURL(
+                    "http://api.openweathermap.org/data/2.5/weather?zip=94555,us");
+            String doc = HTTP.get(url);
+            JSONObject obj = (JSONObject) JSONValue.parse(doc);
 
-            JSONObject tempObj = (JSONObject) weather_json_obj.get("main");
-            JSONArray weatherArray = (JSONArray) weather_json_obj.get("weather");
+            JSONObject tempObj = (JSONObject) obj.get("main");
+            JSONArray weatherArray = (JSONArray) obj.get("weather");
             JSONObject weatherHash = (JSONObject) weatherArray.get(0);
 
 
+            DecimalFormat f = new DecimalFormat();
+            f.setMaximumFractionDigits(1);
 
 
-            terminal.moveTo(19, xPosition);
-            terminal.setTextColor(AnsiTerminal.Color.WHITE, true);
+            terminal.moveTo(5, 40);
+            terminal.setTextColor(AnsiTerminal.Color.RED, true);
             terminal.write("---- CURRENT WEATHER INFO ----");
 
+            // temperature
+
+            terminal.setTextColor(AnsiTerminal.Color.CYAN, true);
             Double temperature = (Double)tempObj.get("temp");
-            temperature = ((temperature  - 273.15) * 1.8000 + 32);
-            terminal.moveTo(21, xPosition);
-            terminal.write("Temperature is currently: " + temperature + " °F");
+            temperature = (((temperature  - 273) * 1.8) + 32);
+            terminal.moveTo(9, 40);
+            terminal.write("Temperature is currently: " + f.format(temperature) + "°F");
+
+
+            // pressure
 
             Double pressure = (Double) tempObj.get("pressure");
             pressure = pressure * 0.02952998751;
-            terminal.moveTo(23 ,xPosition);
-            terminal.write("Air Pressure is currently: " + pressure + " inHG");
+            terminal.moveTo(11, 40);
+            terminal.write("Air Pressure is currently: " +  f.format(pressure) + " inHG");
+
+
+            // humidity
 
             Long humidity = (Long) tempObj.get("humidity");
-            terminal.moveTo(25 ,xPosition);
+            humidity.toString();
+            terminal.moveTo(13 , 40);
             terminal.write("Humidity is currently: " + humidity + " %");
 
 
-            // ASCII ART FOR WEATHER SHOULD GO HERE...
+
+            // current weather info
 
             String weather = (String) weatherHash.get("main");
-            terminal.moveTo(277 ,xPosition);
+            terminal.moveTo(15 , 40);
             terminal.write("Current weather: " + weather);
 
             String weatherDescrip = (String) weatherHash.get("description");
-            terminal.moveTo(31 ,xPosition);
+            terminal.moveTo(17 , 40);
             terminal.write("Sky description: " + weatherDescrip);
 
 
+            // Print out current weather graphic
+            y = 20;
+            for (int i = 0; i < WeatherDrawings.printCloud().size(); i++)
+            {
+                terminal.setTextColor(AnsiTerminal.Color.WHITE);
+                terminal.moveTo(y, 40);
+                terminal.write(WeatherDrawings.printCloud().get(i));
+                y++;
+            }
 
 
+
+
+            // Print Sun or Moon
+
+            y = 19;
+            if (cal.get(Calendar.HOUR_OF_DAY) >= 12) {
+                for (int i = 0; i < WeatherDrawings.printMoon().size(); i++) {
+                    terminal.moveTo(y, 80);
+                    terminal.write(WeatherDrawings.printMoon().get(i));
+                    y++;
+                }
+            } else if (cal.get(Calendar.HOUR_OF_DAY) <=12) {
+                for (int i = 0; i < WeatherDrawings.printSun().size(); i++) {
+                    terminal.moveTo(y, 80);
+                    terminal.write(WeatherDrawings.printSun().get(i));
+                    y++;
+                }
+            }
+
+
+
+            // Print title
+            y = 30;
+            for (int i = 0; i < WeatherDrawings.titleProject().size(); i++)
+            {
+                terminal.setTextColor(AnsiTerminal.Color.GREEN);
+                terminal.moveTo(y, 10);
+                terminal.write(WeatherDrawings.titleProject().get(i));
+                y++;
+            }
+
+
+            
         }
     }
 }
